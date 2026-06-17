@@ -11,16 +11,58 @@ st.write("Elaborado por: Nicole Chuque")
 
 archivo = st.file_uploader("Cargue el archivo excel o csv")
 
-if archivo is not None :
-  
-  if archivo.name.endswith(".csv")
-      data = pd. read_csv(archivo)
-      st.write(data)
-  elif archivo.name.endswith(".xlsx")
-     data = pd. read_csv(archivo)
-      st.write(data)
-  else:
-    st.write("Formato no válido")
-    
-else :
-  st.write("Por favor cargue su archivo")
+# Validamos si el usuario cargó un archivo
+
+if archivo is not None:
+
+ 
+
+    # Validamos si el archivo cargado tiene extensión .csv
+
+    if archivo.name.endswith(".csv"):
+
+ 
+
+        # Leemos el archivo CSV y lo guardamos en un DataFrame
+
+        data = pd.read_csv(archivo)
+
+ 
+
+        # Mostramos el DataFrame en la aplicación
+
+        st.write(data)
+
+ 
+
+    # Validamos si el archivo cargado tiene extensión .xlsx
+
+    elif archivo.name.endswith(".xlsx"):
+
+ 
+
+        # Leemos el archivo Excel y lo guardamos en un DataFrame
+
+        data = pd.read_excel(archivo)
+
+ 
+
+        # Mostramos el DataFrame en la aplicación
+
+        st.write(data)
+
+ 
+
+    # Si el archivo no es CSV ni Excel, mostramos un mensaje de error
+
+    else:
+
+        st.write("Formato no válido")
+
+ 
+
+# Si el usuario no ha cargado ningún archivo, mostramos un mensaje
+
+else:
+
+    st.write("Por favor cargue su archivo")
