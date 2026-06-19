@@ -31,7 +31,7 @@ if modulos == "Home":
 
 elif modulos == "Carga y perfil del dataset":
    st.subheader("Carga y perfil del dataset")
- archivo = st.file_uploader("Cargue el archivo excel o csv",type=["csv", "xlsx"])
+archivo = st.file_uploader("Cargue el archivo Excel o CSV",type=["csv", "xlsx"])
  
  # Validamos si el usuario cargó un archivo
  
