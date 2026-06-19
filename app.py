@@ -249,19 +249,7 @@ elif modulos == "Análisis visual":
 
         st.dataframe(data)
 
- 
-
-    else:
-
-        st.warning(
-
-            "Primero debe cargar un dataset en el módulo "
-
-            "'Carga y perfil del dataset'."
-
-        )
-
-        lista_columna_numerica = data.select_dtypes(include = "number").columns.tolist()
+         lista_columna_numerica = data.select_dtypes(include = "number").columns.tolist()
     
         variable_numerica = st.selectbox("Selecione la columna númerica",lista_columna_numerica)
     
@@ -271,3 +259,11 @@ elif modulos == "Análisis visual":
     
         variable_categorica = st.selectbox("Seleccione la columna categórica",lista_columna_categorica)
 
+
+    else:
+
+        st.warning(
+
+            "Primero debe cargar un dataset en el módulo "
+
+            "'Carga y perfil del dataset'.")
