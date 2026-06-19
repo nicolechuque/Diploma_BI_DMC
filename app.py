@@ -328,14 +328,27 @@ elif modulos == "Análisis visual":
                 sns.scatterplot(x=data[col_riesgo], y=data[col_demand], ax=ax3, alpha=0.7, color="purple")
                 ax3.set_title("Relación entre Riesgo de Reemplazo y Demanda Futura")
                 st.pyplot(fig3)
+                plt.close(fig3) # <-- Limpiamos la figura para evitar conflictos entre pestañas
             
-            # 2. Heatmap de correlación
+            # 2. Heatmap de correlación corregido
             st.write("#### Mapa de Calor de las Variables Numéricas")
             lista_numericas = data.select_dtypes(include="number").columns.tolist()
+            
             if len(lista_numericas) > 1:
-                fig4, ax4 = plt.subplots(figsize=(8, 6))
-                sns.heatmap(data[lista_numericas].corr(), annot=True, cmap="coolwarm", fmt=".2f", ax4=ax4)
+                # CREAMOS una figura limpia e independiente especificando el tamaño directamente
+                fig4 = plt.figure(figsize=(8, 6))
+                
+                # Calculamos la correlación
+                corr_matrix = data[lista_numericas].corr()
+                
+                # Dibujamos el heatmap SIN pasarle un objeto ax problemático
+                sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f")
+                
+                # Se lo pasamos a Streamlit
                 st.pyplot(fig4)
+                plt.close(fig4) # <-- Cerramos la figura al terminar
+            else:
+                st.write("Se necesitan al menos 2 columnas numéricas para calcular correlaciones.")
 
         # ==========================================
         # TAB 5: ANÁLISIS TEMPORAL
