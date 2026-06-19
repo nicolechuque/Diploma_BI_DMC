@@ -31,7 +31,7 @@ if archivo is not None:
 
         # Mostramos el DataFrame en la aplicación
 
-        st.write(data)
+        st.write(data.head())
 
  
 
