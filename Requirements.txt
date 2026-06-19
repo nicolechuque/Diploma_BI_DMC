@@ -1,6 +1,6 @@
-Streamlit
-Pandas
-Openpyxl
-Plotly
-Seaborn
-Matplolib
+streamlit
+pandas
+openpyxl
+plotly
+seaborn
+matplotlib
