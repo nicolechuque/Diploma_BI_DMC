@@ -10,7 +10,7 @@ st.sidebar.image("logo-secundario-dmc-institute-01.png",width = 300)
 
 st.write("Elaborado por: Nicole Chuque")
 
-modulos = st.selectbox("Selecione un módulo", ["Home","Carga y perfil del dataset","Procesamiento de datos","Análisis visual"])
+modulos = st.sidebar.selectbox("Selecione un módulo", ["Home","Carga y perfil del dataset","Procesamiento de datos","Análisis visual"])
 
 archivo = st.file_uploader("Cargue el archivo excel o csv")
 
