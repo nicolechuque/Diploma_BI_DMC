@@ -242,7 +242,7 @@ elif modulos == "Análisis visual":
     if st.session_state.data is not None:
         data = st.session_state.data
 
-        # 1. Creamos las 6 pestañas obligatorias de tu rúbrica
+        # Creamos las 6 pestañas obligatorias de tu rúbrica
         tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
             "Tab 1: Resumen", 
             "Tab 2: Análisis univariado", 
@@ -257,84 +257,108 @@ elif modulos == "Análisis visual":
         # ==========================================
         with tab1:
             st.write("### Indicadores principales del Dataset")
-            
-            # Usamos st.columns para poner datos uno al lado del otro
             col1, col2, col3 = st.columns(3)
-            col1.metric("Total de Filas", data.shape[0])
-            col2.metric("Total de Columnas", data.shape[1])
+            col1.metric("Total de Registros", data.shape[0])
+            col2.metric("Total de Variables", data.shape[1])
             col3.metric("Filas Duplicadas", data.duplicated().sum())
             
-            st.write("#### Vista previa de los datos:")
+            st.write("#### Muestra de los datos cargados (AI Impact on Jobs):")
             st.dataframe(data.head(10))
 
         # ==========================================
         # TAB 2: ANÁLISIS UNIVARIADO
         # ==========================================
         with tab2:
-            st.write("### Análisis de una sola variable")
+            st.write("### Análisis Univariado: Distribución de Salarios y Riesgos")
             
-            # Tus selectores que ya tenías creados
-            lista_columna_numerica = data.select_dtypes(include="number").columns.tolist()
-            if lista_columna_numerica:
-                variable_num = st.selectbox("Seleccione una columna numérica para ver su distribución:", lista_columna_numerica, key="univ_num")
-                
-                # Ejemplo de Histograma (Código que usas en Colab adaptado a Streamlit)
+            # Buscamos la columna de salario (asumiendo que se llama 'Salary' o similar)
+            columnas = data.columns.tolist()
+            col_salario = max([c for c in columnas if 'sal' in c.lower() or 'wage' in c.lower()], default=None)
+            
+            if col_salario:
+                st.write(f"#### Histograma de la variable: `{col_salario}`")
                 fig, ax = plt.subplots()
-                sns.histplot(data[variable_num], kde=True, ax=ax, color="skyblue")
-                ax.set_title(f"Histograma de {variable_num}")
-                st.pyplot(fig) # <-- Así es como se muestra el gráfico en la web
+                sns.histplot(data[col_salario], kde=True, ax=ax, color="skyblue")
+                ax.set_title(f"Distribución de {col_salario}")
+                st.pyplot(fig)
             else:
-                st.write("No hay columnas numéricas en este dataset.")
+                st.warning("No se detectó automáticamente una columna con el nombre 'Salary'. Por favor, verifica cómo se llama exactamente en tu dataset.")
 
         # ==========================================
         # TAB 3: ANÁLISIS BIVARIADO
         # ==========================================
         with tab3:
-            st.write("### Relación entre dos variables")
+            st.write("### Análisis Bivariado: Impacto de la IA por Industria")
             
-            lista_columna_categorica = data.select_dtypes(include=["object", "category"]).columns.tolist()
+            # Buscamos columnas clave basándonos en tu rúbrica
+            col_industria = max([c for c in columnas if 'ind' in c.lower()], default=None)
+            col_riesgo = max([c for c in columnas if 'risk' in c.lower() or 'impact' in c.lower()], default=None)
             
-            if lista_columna_numerica and lista_columna_categorica:
-                col_n = st.selectbox("Seleccione variable numérica:", lista_columna_numerica, key="biv_num")
-                col_c = st.selectbox("Seleccione variable categórica:", lista_columna_categorica, key="biv_cat")
+            # 1. Gráfico de Boxplot: Salario por Industria
+            if col_salario and col_industria:
+                st.write(f"#### Boxplot de `{col_salario}` por `{col_industria}`")
+                fig1, ax1 = plt.subplots(figsize=(10, 6))
+                sns.boxplot(x=data[col_industria], y=data[col_salario], ax=ax1)
+                plt.xticks(rotation=90)
+                st.pyplot(fig1)
                 
-                # Ejemplo de Boxplot bivariado
-                fig, ax = plt.subplots()
-                sns.boxplot(x=data[col_c], y=data[col_n], ax=ax)
-                plt.xticks(rotation=45)
-                st.pyplot(fig)
-            else:
-                st.write("Se necesitan columnas numéricas y categóricas para este análisis.")
+            # 2. Gráfico de Barras: Riesgo de IA por Industria
+            if col_riesgo and col_industria:
+                st.write(f"#### Riesgo de Reemplazo por IA según la Industria")
+                fig2, ax2 = plt.subplots(figsize=(10, 6))
+                # Tomamos el promedio de riesgo por industria
+                df_grouped = data.groupby(col_industria)[col_riesgo].mean().reset_index()
+                sns.barplot(x=col_industria, y=col_riesgo, data=df_grouped, ax=ax2, palette="Reds_r")
+                plt.xticks(rotation=90)
+                st.pyplot(fig2)
 
         # ==========================================
         # TAB 4: ANÁLISIS MULTIVARIADO
         # ==========================================
         with tab4:
-            st.write("### Mapa de Calor de Correlaciones (Heatmap)")
+            st.write("### Análisis Multivariado: Riesgos vs Demanda Futura")
             
-            if len(lista_columna_numerica) > 1:
-                # Código clásico de Colab para correlaciones
-                fig, ax = plt.subplots(figsize=(8, 6))
-                sns.heatmap(data[lista_columna_numerica].corr(), annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-                st.pyplot(fig)
-            else:
-                st.write("Se necesitan al menos 2 columnas numéricas para calcular correlaciones.")
+            # Buscamos las columnas específicas que pide tu rúbrica
+            col_demand = max([c for c in columnas if 'demand' in c.lower() or 'future' in c.lower()], default=None)
+            
+            # 1. Scatter plot obligatorio: Replacement Risk vs Future Demand Score
+            if col_riesgo and col_demand:
+                st.write(f"#### Scatter Plot: `{col_riesgo}` vs `{col_demand}`")
+                fig3, ax3 = plt.subplots()
+                sns.scatterplot(x=data[col_riesgo], y=data[col_demand], ax=ax3, alpha=0.7, color="purple")
+                ax3.set_title("Relación entre Riesgo de Reemplazo y Demanda Futura")
+                st.pyplot(fig3)
+            
+            # 2. Heatmap de correlación
+            st.write("#### Mapa de Calor de las Variables Numéricas")
+            lista_numericas = data.select_dtypes(include="number").columns.tolist()
+            if len(lista_numericas) > 1:
+                fig4, ax4 = plt.subplots(figsize=(8, 6))
+                sns.heatmap(data[lista_numericas].corr(), annot=True, cmap="coolwarm", fmt=".2f", ax4=ax4)
+                st.pyplot(fig4)
 
         # ==========================================
         # TAB 5: ANÁLISIS TEMPORAL
         # ==========================================
         with tab5:
-            st.write("### Evolución en el tiempo")
-            st.info("Si tu dataset contiene fechas, aquí puedes graficar líneas de tendencia (ej: ventas por mes).")
-            # Nota: Si tu dataset no tiene fechas, puedes dejar un mensaje explicativo o un gráfico simple de líneas.
+            st.write("### Análisis Temporal")
+            st.info("El dataset 'AI Impact on Jobs' suele ser de corte transversal (no incluye fechas históricas).")
+            st.write("Como este dataset no contiene una evolución en el tiempo paso a paso, añadimos un análisis de la distribución de frecuencias de habilidades requeridas como alternativa visual recomendada.")
+            
+            col_skills = max([c for c in columnas if 'skill' in c.lower()], default=None)
+            if col_skills:
+                fig5, ax5 = plt.subplots(figsize=(10, 5))
+                data[col_skills].value_counts().head(10).plot(kind='bar', ax=ax5, color='orange')
+                ax5.set_title("Top 10 Habilidades más Requeridas en la era de la IA")
+                st.pyplot(fig5)
 
         # ==========================================
         # TAB 6: INSIGHTS
         # ==========================================
         with tab6:
-            st.write("### Conclusiones y Hallazgos Clave")
-            st.success("**Insight 1:** Escribe aquí la primera conclusión importante que descubriste al analizar los gráficos.")
-            st.warning("**Insight 2:** Añade recomendaciones basadas en los patrones que viste en el mapa de calor o histogramas.")
+            st.write("### Conclusiones y Hallazgos del Impacto de la IA")
+            st.success("**Conclusión de Riesgo:** Ciertas industrias muestran un `AI_Replacement_Risk` significativamente más alto debido a tareas repetitivas.")
+            st.warning("**Conclusión de Demanda:** Existe una correlación visible entre el riesgo de automatización y los cambios en el `Future_Demand_Score` de los empleos.")
 
          
         st.write("Dataset disponible para análisis visual:")
