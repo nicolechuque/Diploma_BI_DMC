@@ -13,7 +13,7 @@ st.write("Elaborado por: Nicole Chuque")
 modulos = st.sidebar.selectbox("Selecione un módulo", ["Home","Carga y perfil del dataset","Procesamiento de datos","Análisis visual"])
 
 if modulos == "Home":
-   st.write ("Bienvenidos a la aplicaci[on")
+   st.write ("Bienvenidos a la aplicación")
 
 elif modulos == "Carga y perfil del dataset":
  archivo = st.file_uploader("Cargue el archivo excel o csv")
