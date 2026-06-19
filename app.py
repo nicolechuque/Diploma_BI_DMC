@@ -22,7 +22,7 @@ st.write("Elaborado por: Nicole Chuque")
 modulos = st.sidebar.selectbox("Selecione un módulo", ["Home","Carga y perfil del dataset","Procesamiento de datos","Análisis visual"])
 
 if modulos == "Home":
-   st.write ("Bienvenidos a la aplicación")
+    st.write("Bienvenidos a la aplicación")
 
     if st.session_state.data is not None:
         st.success(f"Dataset cargado: {st.session_state.nombre_archivo}")
