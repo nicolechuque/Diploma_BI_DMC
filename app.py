@@ -15,7 +15,7 @@ modulos = st.sidebar.selectbox("Selecione un módulo", ["Home","Carga y perfil d
 if modulos == "Home":
    st.write ("Bienvenidos a la aplicaci[on")
 
-elif modulos == "Carga y perfil del dataset"
+elif modulos == "Carga y perfil del dataset":
  archivo = st.file_uploader("Cargue el archivo excel o csv")
  
  # Validamos si el usuario cargó un archivo
