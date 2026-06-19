@@ -232,12 +232,7 @@ elif modulos == "Procesamiento de datos":
 # ==============================
 
 elif modulos == "Análisis visual":
-
- 
-
     st.subheader("Análisis visual")
-
- 
 
     if st.session_state.data is not None:
         data = st.session_state.data
@@ -262,27 +257,25 @@ elif modulos == "Análisis visual":
             col2.metric("Total de Variables", data.shape[1])
             col3.metric("Filas Duplicadas", data.duplicated().sum())
             
-            st.write("#### Muestra de los datos cargados (AI Impact on Jobs):")
+            st.write("#### Muestra de los datos cargados:")
             st.dataframe(data.head(10))
 
         # ==========================================
         # TAB 2: ANÁLISIS UNIVARIADO
         # ==========================================
         with tab2:
-            st.write("### Análisis Univariado: Distribución de Salarios y Riesgos")
+            st.write("### Análisis Univariado: Distribución de Salarios")
             
-            # Buscamos la columna de salario (asumiendo que se llama 'Salary' o similar)
-            columnas = data.columns.tolist()
-            col_salario = max([c for c in columnas if 'sal' in c.lower() or 'wage' in c.lower()], default=None)
-            
-            if col_salario:
-                st.write(f"#### Histograma de la variable: `{col_salario}`")
-                fig, ax = plt.subplots()
-                sns.histplot(data[col_salario], kde=True, ax=ax, color="skyblue")
-                ax.set_title(f"Distribución de {col_salario}")
-                st.pyplot(fig)
+            # Usamos la columna exacta: Average_Salary_USD
+            if "Average_Salary_USD" in data.columns:
+                st.write("#### Histograma de Salario Promedio (USD)")
+                fig1, ax1 = plt.subplots()
+                sns.histplot(data["Average_Salary_USD"], kde=True, ax=ax1, color="skyblue")
+                ax1.set_title("Distribución de Average_Salary_USD")
+                st.pyplot(fig1)
+                plt.close(fig1)
             else:
-                st.warning("No se detectó automáticamente una columna con el nombre 'Salary'. Por favor, verifica cómo se llama exactamente en tu dataset.")
+                st.warning("No se encontró la columna 'Average_Salary_USD' en el archivo cargado.")
 
         # ==========================================
         # TAB 3: ANÁLISIS BIVARIADO
@@ -290,27 +283,24 @@ elif modulos == "Análisis visual":
         with tab3:
             st.write("### Análisis Bivariado: Impacto de la IA por Industria")
             
-            # Buscamos columnas clave basándonos en tu rúbrica
-            col_industria = max([c for c in columnas if 'ind' in c.lower()], default=None)
-            col_riesgo = max([c for c in columnas if 'risk' in c.lower() or 'impact' in c.lower()], default=None)
-            
             # 1. Gráfico de Boxplot: Salario por Industria
-            if col_salario and col_industria:
-                st.write(f"#### Boxplot de `{col_salario}` por `{col_industria}`")
-                fig1, ax1 = plt.subplots(figsize=(10, 6))
-                sns.boxplot(x=data[col_industria], y=data[col_salario], ax=ax1)
-                plt.xticks(rotation=90)
-                st.pyplot(fig1)
-                
-            # 2. Gráfico de Barras: Riesgo de IA por Industria
-            if col_riesgo and col_industria:
-                st.write(f"#### Riesgo de Reemplazo por IA según la Industria")
+            if "Average_Salary_USD" in data.columns and "Industry" in data.columns:
+                st.write("#### Boxplot de Salario Promedio por Industria")
                 fig2, ax2 = plt.subplots(figsize=(10, 6))
-                # Tomamos el promedio de riesgo por industria
-                df_grouped = data.groupby(col_industria)[col_riesgo].mean().reset_index()
-                sns.barplot(x=col_industria, y=col_riesgo, data=df_grouped, ax=ax2, palette="Reds_r")
+                sns.boxplot(x=data["Industry"], y=data["Average_Salary_USD"], ax=ax2)
                 plt.xticks(rotation=90)
                 st.pyplot(fig2)
+                plt.close(fig2)
+                
+            # 2. Gráfico de Barras: Riesgo de IA por Industria (Basado en AI_Replacement_Risk)
+            if "AI_Replacement_Risk" in data.columns and "Industry" in data.columns:
+                st.write("#### Riesgo Promedio de Reemplazo por IA según la Industria")
+                fig3, ax3 = plt.subplots(figsize=(10, 6))
+                df_grouped = data.groupby("Industry")["AI_Replacement_Risk"].mean().reset_index()
+                sns.barplot(x="Industry", y="AI_Replacement_Risk", data=df_grouped, ax=ax3, palette="Reds_r")
+                plt.xticks(rotation=90)
+                st.pyplot(fig3)
+                plt.close(fig3)
 
         # ==========================================
         # TAB 4: ANÁLISIS MULTIVARIADO
@@ -318,60 +308,52 @@ elif modulos == "Análisis visual":
         with tab4:
             st.write("### Análisis Multivariado: Riesgos vs Demanda Futura")
             
-            # Buscamos las columnas específicas que pide tu rúbrica
-            col_demand = max([c for c in columnas if 'demand' in c.lower() or 'future' in c.lower()], default=None)
-            
-            # 1. Scatter plot obligatorio: Replacement Risk vs Future Demand Score
-            if col_riesgo and col_demand:
-                st.write(f"#### Scatter Plot: `{col_riesgo}` vs `{col_demand}`")
-                fig3, ax3 = plt.subplots()
-                sns.scatterplot(x=data[col_riesgo], y=data[col_demand], ax=ax3, alpha=0.7, color="purple")
-                ax3.set_title("Relación entre Riesgo de Reemplazo y Demanda Futura")
-                st.pyplot(fig3)
-                plt.close(fig3) # <-- Limpiamos la figura para evitar conflictos entre pestañas
-            
-            # 2. Heatmap de correlación corregido
-            st.write("#### Mapa de Calor de las Variables Numéricas")
-            lista_numericas = data.select_dtypes(include="number").columns.tolist()
-            
-            if len(lista_numericas) > 1:
-                # CREAMOS una figura limpia e independiente especificando el tamaño directamente
-                fig4 = plt.figure(figsize=(8, 6))
-                
-                # Calculamos la correlación
-                corr_matrix = data[lista_numericas].corr()
-                
-                # Dibujamos el heatmap SIN pasarle un objeto ax problemático
-                sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f")
-                
-                # Se lo pasamos a Streamlit
+            # 1. Scatter plot obligatorio: AI_Replacement_Risk vs Future_Demand_Score
+            if "AI_Replacement_Risk" in data.columns and "Future_Demand_Score" in data.columns:
+                st.write("#### Scatter Plot: Riesgo de Reemplazo vs Puntuación de Demanda Futura")
+                fig4, ax4 = plt.subplots()
+                sns.scatterplot(x=data["AI_Replacement_Risk"], y=data["Future_Demand_Score"], ax=ax4, alpha=0.7, color="purple")
+                ax4.set_title("AI_Replacement_Risk vs Future_Demand_Score")
                 st.pyplot(fig4)
-                plt.close(fig4) # <-- Cerramos la figura al terminar
+                plt.close(fig4)
+            
+            # 2. Heatmap de correlación corregido con columnas numéricas de tu lista
+            st.write("#### Mapa de Calor de Correlaciones Numéricas")
+            # Filtramos únicamente las columnas numéricas reales que correspondan a tu lista
+            columnas_interes = [c for c in ["AI_Replacement_Risk", "Future_Demand_Score", "Average_Salary_USD", "Years_Experience", "Job_Growth_2030", "Performance_Score", "Job_Satisfaction"] if c in data.columns]
+            
+            if len(columnas_interes) > 1:
+                fig5 = plt.figure(figsize=(8, 6))
+                corr_matrix = data[columnas_interes].corr()
+                sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f")
+                st.pyplot(fig5)
+                plt.close(fig5)
             else:
-                st.write("Se necesitan al menos 2 columnas numéricas para calcular correlaciones.")
+                st.write("Se necesitan más variables numéricas para el Mapa de Calor.")
 
         # ==========================================
         # TAB 5: ANÁLISIS TEMPORAL
         # ==========================================
         with tab5:
-            st.write("### Análisis Temporal")
-            st.info("El dataset 'AI Impact on Jobs' suele ser de corte transversal (no incluye fechas históricas).")
-            st.write("Como este dataset no contiene una evolución en el tiempo paso a paso, añadimos un análisis de la distribución de frecuencias de habilidades requeridas como alternativa visual recomendada.")
+            st.write("### Análisis de Habilidades (Alternativa Temporal)")
+            st.info("Dado que este dataset es transversal (representa una foto fija del año), analizamos las habilidades requeridas.")
             
-            col_skills = max([c for c in columnas if 'skill' in c.lower()], default=None)
-            if col_skills:
-                fig5, ax5 = plt.subplots(figsize=(10, 5))
-                data[col_skills].value_counts().head(10).plot(kind='bar', ax=ax5, color='orange')
-                ax5.set_title("Top 10 Habilidades más Requeridas en la era de la IA")
-                st.pyplot(fig5)
+            # Gráfico de barras de habilidades: Required_Skills
+            if "Required_Skills" in data.columns:
+                st.write("#### Top 10 Habilidades más Requeridas")
+                fig6, ax6 = plt.subplots(figsize=(10, 5))
+                data["Required_Skills"].value_counts().head(10).plot(kind='bar', ax=ax6, color='orange')
+                plt.xticks(rotation=45, ha='right')
+                st.pyplot(fig6)
+                plt.close(fig6)
 
         # ==========================================
         # TAB 6: INSIGHTS
         # ==========================================
         with tab6:
-            st.write("### Conclusiones y Hallazgos del Impacto de la IA")
-            st.success("**Conclusión de Riesgo:** Ciertas industrias muestran un `AI_Replacement_Risk` significativamente más alto debido a tareas repetitivas.")
-            st.warning("**Conclusión de Demanda:** Existe una correlación visible entre el riesgo de automatización y los cambios en el `Future_Demand_Score` de los empleos.")
+            st.write("### Conclusiones y Hallazgos Clave")
+            st.success("**Insight 1 (Riesgo por Industria):** Las industrias muestran variaciones drásticas en su `AI_Replacement_Risk`, lo que permite identificar los sectores más vulnerables a la automatización.")
+            st.warning("**Insight 2 (Salarios y Futuro):** El cruce entre `Average_Salary_USD` y `Future_Demand_Score` ayuda a mapear si los trabajos mejor remunerados mantendrán su relevancia hacia el futuro.")
 
          
         st.write("Dataset disponible para análisis visual:")
